@@ -1,0 +1,112 @@
+import edu.princeton.cs.algs4.StdOut;
+import edu.princeton.cs.algs4.StdRandom;
+import edu.princeton.cs.algs4.StdStats;
+
+
+public class PercolationStats {
+    // Array of performed trials.Single entry represents single trial
+    private double[] arrayOfTrials;
+    // Number of performed trials
+    private int trialCount;
+
+
+    /**
+     * perform trials independent experiments on an n-by-n grid.
+     *
+     * @param n.
+     * @param trials.
+     */
+    public PercolationStats(int n, int trials) {
+
+        if (n <= 0 || trials <= 0) {
+            throw new IllegalArgumentException("Input must be greater than 0");
+        }
+
+        trialCount = trials;
+        arrayOfTrials = new double[trialCount];
+
+        for (int c = 0; c < trialCount; c++) {
+
+            // perform single trial
+            // Make n-by-n grid
+            Percolation percolation = new Percolation(n);
+
+            // Track open cells
+            int openedCells = 0;
+
+            while (!percolation.percolates()) {
+                int rndRow = StdRandom.uniform(1, n + 1);
+                int rndCol = StdRandom.uniform(1, n + 1);
+
+                if (!percolation.isOpen(rndRow, rndCol) && !percolation.isFull(rndRow, rndCol)) {
+                    percolation.open(rndRow, rndCol);
+                    openedCells++;
+                }
+            }
+            arrayOfTrials[c] = (double) openedCells / (n * n);
+        }
+
+    }
+
+    /**
+     * sample mean of percolation threshold.
+     *
+     * @return mean of percolation threshold
+     */
+    public double mean() {
+        return StdStats.mean(arrayOfTrials);
+    }
+
+    /**
+     * sample standard deviation of percolation threshold.
+     *
+     * @return standard deviation of percolation threshold.
+     */
+    public double stddev() {
+
+        if (trialCount == 1) {
+            return Double.NaN;
+        } else {
+            return StdStats.stddev(arrayOfTrials);
+        }
+
+    }
+
+    /**
+     * @return low endpoint of 95% confidence interval.
+     */
+    public double confidenceLo() {
+        return mean() - (1.96 * stddev() / Math.sqrt(trialCount));
+    }
+
+    /**
+     * @return high endpoint of 95% confidence interval.
+     */
+    public double confidenceHi() {
+        return mean() + (1.96 * stddev() / Math.sqrt(trialCount));
+    }
+
+
+    /**
+     * @param args test client.
+     */
+    public static void main(String[] args) {
+        int n;
+        int trials;
+
+        if (args.length > 0) {
+            try {
+                n = Integer.parseInt(args[0]);
+                trials = Integer.parseInt(args[1]);
+                PercolationStats ps = new PercolationStats(n, trials);
+
+                StdOut.println("mean                    = " + ps.mean());
+                StdOut.println("stddev                  = " + ps.stddev());
+                StdOut.println("95% confidence interval = " + ps.confidenceLo() + ", " + ps.confidenceHi());
+            } catch (NumberFormatException e) {
+                System.err.println("Argument" + args[0] + " must be an integer.");
+                System.err.println("Argument" + args[1] + " must be an integer.");
+            }
+        }
+    }
+}
